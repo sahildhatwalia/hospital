@@ -43,23 +43,6 @@ npm install
 ### 2. Configure Environment Variables
 Create `.env` files in both `server/` and `frontend/`:
 
-**`server/.env`**:
-```env
-PORT=5000
-NODE_ENV=development
-MONGO_URI=mongodb://localhost:27017/hqms
-JWT_SECRET=super_secret_jwt_key_hqms_2026
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-CORS_ORIGIN=http://localhost:3000
-```
-
-**`frontend/.env.local`**:
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
-NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
-```
-
 ### 3. Run Development Servers
 ```bash
 # Start backend Express server (Port 5000)
