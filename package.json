@@ -1,0 +1,22 @@
+{
+  "name": "hospital-queue-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "start:server": "npm --prefix server start",
+    "start:client": "npm --prefix client start",
+    "build:client": "npm --prefix client run build"
+  },
+  "keywords": [
+    "nextjs",
+    "express",
+    "mongodb",
+    "socket.io",
+    "bcrypt",
+    "hospital-queue"
+  ],
+  "author": "",
+  "license": "ISC"
+}
