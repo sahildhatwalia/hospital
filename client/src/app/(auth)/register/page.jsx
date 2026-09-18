@@ -51,7 +51,7 @@ export default function RegisterPage() {
             <UserPlus className="h-6 w-6" />
           </div>
           <h2 className="text-2xl font-bold text-white">Create Account</h2>
-          <p className="text-sm text-slate-400">Join CareQueue for live hospital access</p>
+          <p className="text-sm text-slate-400">Join Nexline for live hospital queue access</p>
         </div>
 
         {error && (

@@ -1,270 +1,353 @@
 'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 import {
+  Stethoscope,
   Users,
-  FileText,
-  Calendar,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+  Play,
+  Check,
+  RotateCcw,
+  User,
+  Heart,
   Activity,
-  Plus,
-  ArrowRight,
-  Eye,
-  Search,
-  Filter,
-  UserCheck,
+  Flame,
+  ChevronRight,
   Sparkles,
 } from 'lucide-react';
 import { useHospitalStore } from '../../store/useHospitalStore';
-import { useAuthStore } from '../../store/useAuthStore';
+import { showToast } from '../../components/Toast';
+import ConfirmModal from '../../components/ConfirmModal';
 
 export default function DoctorDashboard() {
-  const router = useRouter();
-  const { user } = useAuthStore();
-  const { patients, prescriptions, queue } = useHospitalStore();
+  const { queue, callNextQueue, completeQueueItem } = useHospitalStore();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showEmptyState, setShowEmptyState] = useState(false);
+  const [doctorStatus, setDoctorStatus] = useState('AVAILABLE'); // AVAILABLE, ON_BREAK, IN_CONSULTATION
+  const [consultationTimer, setConsultationTimer] = useState(0);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  const doctorName = user?.name || 'Dr. John Smith';
-  const currentDate = 'Wednesday, 19 August 2026';
+  // Active current patient (In Progress)
+  const currentPatient = queue.find((item) => item.status === 'In Progress');
+  // Next upcoming patients (Waiting)
+  const upcomingQueue = queue.filter((item) => item.status === 'Waiting');
+  const completedToday = queue.filter((item) => item.status === 'Completed').length;
 
-  // Calculate metrics
-  const totalPatients = patients.length;
-  const prescriptionsToday = prescriptions.length;
-  const completedAppointments = queue.filter((q) => q.status === 'Completed').length;
-  const totalAppointments = queue.length;
-  const pendingActions = prescriptions.filter((p) => p.status === 'Pending').length;
+  useEffect(() => {
+    let interval = null;
+    if (currentPatient) {
+      interval = setInterval(() => {
+        setConsultationTimer((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setConsultationTimer(0);
+    }
+    return () => clearInterval(interval);
+  }, [currentPatient]);
 
-  const filteredPatients = showEmptyState
-    ? []
-    : patients.filter(
-        (p) =>
-          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.condition.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  const formatTimer = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
+  const handleCallNext = () => {
+    if (upcomingQueue.length === 0) {
+      showToast('No patients currently waiting in queue', 'warning');
+      return;
+    }
+    const nextItem = upcomingQueue[0];
+    callNextQueue(nextItem.id);
+    setDoctorStatus('IN_CONSULTATION');
+    showToast(`Calling Token ${nextItem.tokenCode || nextItem.tokenNumber} — ${nextItem.patientName}`, 'success');
+  };
+
+  const handleCompleteCurrent = () => {
+    if (currentPatient) {
+      completeQueueItem(currentPatient.id);
+      setDoctorStatus('AVAILABLE');
+      showToast(`Completed consultation for ${currentPatient.patientName}`, 'success');
+    }
+  };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-            Doctor Dashboard
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Welcome, {doctorName} • <span className="font-medium text-gray-700 dark:text-gray-300">{currentDate}</span>
-          </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      
+      {/* Header Banner */}
+      <div className="glass-card p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-l-4 border-l-[#00D4FF]">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-[#00D4FF]/20 text-[#00D4FF] border border-[#00D4FF]/30 flex items-center justify-center">
+            <Stethoscope className="w-8 h-8" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-white">Dr. John Smith</h1>
+            <p className="text-xs text-[#00D4FF] font-semibold">Cardiology Department • Consultation Room 104</p>
+          </div>
         </div>
 
-        <Link
-          href="/doctor/prescriptions/new"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm hover:shadow transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Prescription</span>
-        </Link>
+        {/* Doctor Status Switcher */}
+        <div className="flex items-center gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/10">
+          <button
+            onClick={() => {
+              setDoctorStatus('AVAILABLE');
+              showToast('Doctor status set to Available', 'info');
+            }}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              doctorStatus === 'AVAILABLE'
+                ? 'bg-[#10B981] text-white shadow-emerald-glow'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Available
+          </button>
+
+          <button
+            onClick={() => {
+              setDoctorStatus('ON_BREAK');
+              showToast('Doctor status set to On Break', 'warning');
+            }}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              doctorStatus === 'ON_BREAK'
+                ? 'bg-amber-500 text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            On Break
+          </button>
+
+          <button
+            onClick={() => {
+              setDoctorStatus('IN_CONSULTATION');
+            }}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              doctorStatus === 'IN_CONSULTATION'
+                ? 'bg-[#00D4FF] text-[#070F2B] font-extrabold shadow-cyan-glow'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            In Consultation
+          </button>
+        </div>
       </div>
 
-      {/* Stat Cards Row (4 Cards) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Main Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Card 1: Total Patients */}
-        <div className="p-5 rounded-xl bg-white dark:bg-[#1A1D23] border border-gray-200 dark:border-[#2D3748] shadow-card card-hover-lift flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Patients</span>
-            <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
-              <Users className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">{totalPatients}</div>
-            <p className="text-xs text-gray-400 mt-1">Active in system</p>
-          </div>
-        </div>
-
-        {/* Card 2: Prescriptions Today */}
-        <div className="p-5 rounded-xl bg-white dark:bg-[#1A1D23] border border-gray-200 dark:border-[#2D3748] shadow-card card-hover-lift flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Prescriptions Today</span>
-            <div className="p-2.5 rounded-lg bg-green-50 dark:bg-green-950/60 text-green-600 dark:text-green-400">
-              <FileText className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">{prescriptionsToday}</div>
-            <p className="text-xs text-gray-400 mt-1">Created today</p>
-          </div>
-        </div>
-
-        {/* Card 3: Today's Appointments */}
-        <div className="p-5 rounded-xl bg-white dark:bg-[#1A1D23] border border-gray-200 dark:border-[#2D3748] shadow-card card-hover-lift flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Today's Appointments</span>
-            <div className="p-2.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400">
-              <Calendar className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">{totalAppointments}</div>
-            <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mt-1">
-              {completedAppointments} completed
-            </p>
-          </div>
-        </div>
-
-        {/* Card 4: Pending Actions */}
-        <div className="p-5 rounded-xl bg-white dark:bg-[#1A1D23] border border-gray-200 dark:border-[#2D3748] shadow-card card-hover-lift flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending Actions</span>
-            <div className="p-2.5 rounded-lg bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400">
-              <Activity className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">{pendingActions}</div>
-            <p className="text-xs text-orange-600 dark:text-orange-400 font-medium mt-1">
-              Awaiting pharmacy
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Patients Panel (Full width card) */}
-      <div className="bg-white dark:bg-[#1A1D23] border border-gray-200 dark:border-[#2D3748] rounded-xl shadow-card overflow-hidden">
-        {/* Panel Header */}
-        <div className="p-5 border-b border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
-              <Users className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Recent Patients</h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">All patients registered in the hospital system</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Search filter */}
-            <div className="relative">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
-              <input
-                type="text"
-                placeholder="Search patient..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+        {/* Left 2 Columns: Prominent Current Patient Banner */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Prominent Current Patient Card */}
+          <div className="glass-card p-6 sm:p-8 relative overflow-hidden border-2 border-[#00D4FF]/40 shadow-2xl">
+            <div className="absolute top-0 right-0 px-6 py-2 bg-[#00D4FF] text-[#070F2B] font-extrabold text-xs uppercase tracking-widest rounded-bl-2xl">
+              NOW SERVING
             </div>
 
-            {/* Toggle demo empty state */}
-            <button
-              onClick={() => setShowEmptyState(!showEmptyState)}
-              className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            >
-              {showEmptyState ? 'Show Data' : 'Test Empty State'}
-            </button>
-          </div>
-        </div>
+            {currentPatient ? (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="px-5 py-3 rounded-2xl bg-[#00D4FF]/20 border border-[#00D4FF]/40 text-[#00D4FF] font-mono font-black text-2xl tracking-wider token-led">
+                      {currentPatient.tokenCode || `CARD-${currentPatient.tokenNumber}`}
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">{currentPatient.patientName}</h2>
+                      <p className="text-xs text-gray-400">
+                        {currentPatient.age} yrs • {currentPatient.gender} • Intake: {currentPatient.arrivalTime}
+                      </p>
+                    </div>
+                  </div>
 
-        {/* Panel Content */}
-        {filteredPatients.length === 0 ? (
-          /* Empty State */
-          <div className="p-12 text-center flex flex-col items-center justify-center">
-            <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 mb-3">
-              <Users className="w-8 h-8" />
+                  {/* Consultation Live Timer */}
+                  <div className="flex items-center gap-3 bg-black/50 px-4 py-2.5 rounded-2xl border border-white/10">
+                    <Clock className="w-5 h-5 text-[#00D4FF] animate-pulse" />
+                    <div>
+                      <div className="text-xs text-gray-400 font-medium">Consultation Time</div>
+                      <div className="text-lg font-mono font-bold text-white">{formatTimer(consultationTimer)}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Patient Vitals & Reason Summary */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/10">
+                  <div className="bg-white/5 p-3 rounded-xl">
+                    <div className="text-[11px] text-gray-400">Chief Complaint</div>
+                    <div className="text-sm font-semibold text-white mt-0.5">{currentPatient.reason}</div>
+                  </div>
+                  <div className="bg-white/5 p-3 rounded-xl">
+                    <div className="text-[11px] text-gray-400">Blood Pressure</div>
+                    <div className="text-sm font-semibold text-[#00D4FF] mt-0.5">120 / 80 mmHg</div>
+                  </div>
+                  <div className="bg-white/5 p-3 rounded-xl">
+                    <div className="text-[11px] text-gray-400">Pulse / Heart Rate</div>
+                    <div className="text-sm font-semibold text-[#10B981] mt-0.5">72 bpm (Stable)</div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-4 pt-2">
+                  <button
+                    onClick={handleCompleteCurrent}
+                    className="flex-1 py-4 px-6 rounded-2xl bg-[#10B981] hover:bg-[#059669] text-white font-extrabold text-sm shadow-emerald-glow transition-all flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span>Complete Consultation</span>
+                  </button>
+
+                  <button
+                    onClick={handleCallNext}
+                    className="py-4 px-6 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm border border-white/20 transition-all flex items-center justify-center gap-2"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Next Patient</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="py-12 text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto text-gray-500">
+                  <User className="w-8 h-8" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-white">No Active Consultation</h3>
+                  <p className="text-xs text-gray-400">Click below to call the next waiting patient in queue</p>
+                </div>
+
+                {/* Prominent CALL NEXT PATIENT Button */}
+                <button
+                  onClick={handleCallNext}
+                  className="py-5 px-10 rounded-2xl bg-[#0A2463] hover:bg-[#00D4FF] hover:text-[#070F2B] text-white font-black text-lg shadow-cyan-glow border border-[#00D4FF]/40 transition-all inline-flex items-center gap-3 transform hover:scale-105"
+                >
+                  <Play className="w-6 h-6 fill-current" />
+                  <span>CALL NEXT PATIENT</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Next 5 Waiting Patients List */}
+          <div className="glass-card p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-[#00D4FF]" />
+                <h3 className="text-lg font-bold text-white">Upcoming Patients Queue ({upcomingQueue.length})</h3>
+              </div>
+              <span className="text-xs text-gray-400">Sorted by Priority Scoring</span>
             </div>
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">No recent patients</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mt-1">
-              There are currently no matching patient records in the system or filters have excluded them.
-            </p>
-          </div>
-        ) : (
-          /* Populated State Table */
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
-              <thead className="bg-gray-50/70 dark:bg-gray-800/40 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800">
-                <tr>
-                  <th className="px-6 py-3.5">Patient Info</th>
-                  <th className="px-6 py-3.5">Last Visit</th>
-                  <th className="px-6 py-3.5">Condition Tag</th>
-                  <th className="px-6 py-3.5">Status</th>
-                  <th className="px-6 py-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {filteredPatients.map((patient) => {
-                  const initials = patient.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('');
 
-                  const isCritical = patient.status === 'Critical';
-                  const isAdmitted = patient.status === 'Admitted';
-                  const isWaiting = patient.status === 'Waiting';
-
-                  return (
-                    <tr
-                      key={patient.id}
-                      className="hover:bg-blue-50/30 dark:hover:bg-blue-950/20 transition-colors group"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 font-bold text-xs flex items-center justify-center shrink-0">
-                            {initials}
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                              {patient.name}
-                            </div>
-                            <div className="text-xs text-gray-400">
-                              {patient.id} • {patient.age} yrs, {patient.gender}
-                            </div>
-                          </div>
+            {upcomingQueue.length === 0 ? (
+              <div className="py-8 text-center text-gray-400 text-xs">No patients waiting in queue.</div>
+            ) : (
+              <div className="space-y-3">
+                {upcomingQueue.slice(0, 5).map((item, idx) => (
+                  <div
+                    key={item.id}
+                    className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-8 h-8 rounded-xl bg-[#00D4FF]/10 text-[#00D4FF] font-bold text-xs flex items-center justify-center font-mono">
+                        #{idx + 1}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-white">{item.patientName}</span>
+                          <span className="text-xs px-2 py-0.5 rounded-md bg-[#00D4FF]/20 text-[#00D4FF] font-mono font-bold">
+                            {item.tokenCode || `CARD-${item.tokenNumber}`}
+                          </span>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-xs font-medium text-gray-600 dark:text-gray-300">
-                        {patient.lastVisit}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
-                          {patient.condition}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            isCritical
-                              ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300'
-                              : isAdmitted
-                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
-                              : isWaiting
-                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-                              : 'bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300'
-                          }`}
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                          {patient.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Link
-                          href={`/doctor/patients/${patient.id}`}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 text-gray-700 dark:text-gray-300 text-xs font-medium transition-colors"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>View</span>
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        <p className="text-xs text-gray-400 mt-0.5">{item.reason}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className="text-xs font-semibold text-gray-300">{item.waitTime}</div>
+                        <div className="text-[10px] text-gray-500">Wait Duration</div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          callNextQueue(item.id);
+                          setDoctorStatus('IN_CONSULTATION');
+                          showToast(`Calling ${item.patientName}`, 'success');
+                        }}
+                        className="p-2 rounded-xl bg-[#00D4FF]/20 text-[#00D4FF] hover:bg-[#00D4FF] hover:text-[#070F2B] transition-colors"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
+
+        {/* Right 1 Column: Today's Metrics & Circular Gauge */}
+        <div className="space-y-6">
+          
+          {/* Today's Completed Progress Ring */}
+          <div className="glass-card p-6 space-y-6 text-center">
+            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Today's Performance Target</h3>
+            
+            <div className="relative w-40 h-40 mx-auto flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <path
+                  className="text-white/10"
+                  strokeWidth="3.5"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path
+                  className="text-[#00D4FF]"
+                  strokeDasharray={`${Math.min(100, (completedToday / 20) * 100)}, 100`}
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+              </svg>
+              <div className="absolute flex flex-col items-center">
+                <span className="text-3xl font-black text-white font-mono">{completedToday}</span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Completed</span>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-white/10 flex justify-between text-xs">
+              <span className="text-gray-400">Target: 20 Patients</span>
+              <span className="text-[#00D4FF] font-bold">{Math.round((completedToday / 20) * 100)}% Reached</span>
+            </div>
+          </div>
+
+          {/* Quick Doctor Tools */}
+          <div className="glass-card p-6 space-y-4">
+            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Quick Consultation Tools</h3>
+            
+            <a
+              href="/doctor/prescriptions/new"
+              className="w-full p-3.5 rounded-xl bg-white/5 hover:bg-[#00D4FF]/20 border border-white/10 flex items-center justify-between text-xs font-bold text-white transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-4 h-4 text-[#00D4FF]" />
+                <span>Create Digital Prescription</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            </a>
+
+            <a
+              href="/doctor/patients"
+              className="w-full p-3.5 rounded-xl bg-white/5 hover:bg-[#00D4FF]/20 border border-white/10 flex items-center justify-between text-xs font-bold text-white transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Users className="w-4 h-4 text-[#10B981]" />
+                <span>Patient Medical History Lookup</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            </a>
+          </div>
+
+        </div>
       </div>
     </div>
   );

@@ -33,13 +33,22 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Rate Limiter
-const limiter = rateLimit({
+// Rate Limiters
+const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
   message: { success: false, error: 'Too many requests from this IP' }
 });
-app.use('/api/', limiter);
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 attempts per 15 minutes window
+  message: { success: false, error: 'Too many authentication attempts. Please try again after 15 minutes.' }
+});
+
+app.use('/api/', generalLimiter);
+app.use('/api/v1/auth/login', authLimiter);
+app.use('/api/v1/auth/register', authLimiter);
 
 // Socket.io Setup
 const io = new Server(server, {
@@ -55,7 +64,7 @@ app.set('io', io);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', system: 'Hospital Queue Management API', timestamp: new Date() });
+  res.json({ status: 'OK', system: 'Nexline Hospital Queue Management API', timestamp: new Date() });
 });
 
 // API Routes

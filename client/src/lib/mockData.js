@@ -26,15 +26,6 @@ export const INITIAL_DEMO_USERS = {
     avatar: 'MC',
     accentColor: '#0D9488',
   },
-  pharmacist: {
-    id: 'p1',
-    name: 'Priya Sharma',
-    role: 'PHARMACIST',
-    email: 'pharmacy.priya@easpataal.com',
-    department: 'Central Pharmacy',
-    avatar: 'PS',
-    accentColor: '#F59E0B',
-  },
 };
 
 export const INITIAL_PATIENTS = [
@@ -67,7 +58,7 @@ export const INITIAL_PATIENTS = [
       { id: 'v2', date: '2026-05-12', diagnosis: 'Mild Hypertension Routine Checkup', doctor: 'Dr. John Smith', department: 'Cardiology', notes: 'Prescription adjusted.' }
     ],
     prescriptions: [
-      { id: 'RX-901', date: '2026-08-18', medicines: [{ name: 'Metoprolol Tartrate', dosage: '50mg', frequency: 'Twice daily', duration: '14 days' }], status: 'Dispensed' }
+      { id: 'RX-901', date: '2026-08-18', medicines: [{ name: 'Metoprolol Tartrate', dosage: '50mg', frequency: 'Twice daily', duration: '14 days' }], status: 'Completed' }
     ]
   },
   {
@@ -158,7 +149,7 @@ export const INITIAL_PATIENTS = [
       { id: 'v5', date: '2026-08-15', diagnosis: 'Bronchitis Discharge Evaluation', doctor: 'Dr. John Smith', department: 'Pulmonology', notes: 'Discharged with inhaler prescription.' }
     ],
     prescriptions: [
-      { id: 'RX-880', date: '2026-08-15', medicines: [{ name: 'Albuterol Inhaler', dosage: '2 puffs', frequency: 'Every 6 hours', duration: '10 days' }], status: 'Dispensed' }
+      { id: 'RX-880', date: '2026-08-15', medicines: [{ name: 'Albuterol Inhaler', dosage: '2 puffs', frequency: 'Every 6 hours', duration: '10 days' }], status: 'Completed' }
     ]
   },
   {
@@ -198,6 +189,7 @@ export const INITIAL_QUEUE = [
   {
     id: 'Q-101',
     tokenNumber: 101,
+    tokenCode: 'OPD-101',
     patientId: 'P-1003',
     patientName: 'Sophia Martinez',
     age: 26,
@@ -206,11 +198,13 @@ export const INITIAL_QUEUE = [
     arrivalTime: '09:15 AM',
     reason: 'Migraine & Nausea',
     status: 'Waiting', // Waiting, In Progress, Completed
-    doctorName: 'Dr. John Smith'
+    doctorName: 'Dr. John Smith',
+    department: 'Neurology'
   },
   {
     id: 'Q-102',
     tokenNumber: 102,
+    tokenCode: 'CARD-102',
     patientId: 'P-1002',
     patientName: 'Marcus Brody',
     age: 58,
@@ -219,11 +213,13 @@ export const INITIAL_QUEUE = [
     arrivalTime: '09:02 AM',
     reason: 'Post-Op Knee Checkup',
     status: 'In Progress',
-    doctorName: 'Dr. John Smith'
+    doctorName: 'Dr. John Smith',
+    department: 'Cardiology'
   },
   {
     id: 'Q-103',
     tokenNumber: 103,
+    tokenCode: 'CARD-103',
     patientId: 'P-1006',
     patientName: 'Robert Vance',
     age: 49,
@@ -232,11 +228,13 @@ export const INITIAL_QUEUE = [
     arrivalTime: '08:50 AM',
     reason: 'Hypertension Followup',
     status: 'Waiting',
-    doctorName: 'Dr. John Smith'
+    doctorName: 'Dr. John Smith',
+    department: 'Cardiology'
   },
   {
     id: 'Q-104',
     tokenNumber: 104,
+    tokenCode: 'EMG-104',
     patientId: 'P-1007',
     patientName: 'Clara Oswald',
     age: 29,
@@ -245,7 +243,8 @@ export const INITIAL_QUEUE = [
     arrivalTime: '08:30 AM',
     reason: 'Routine ECG Review',
     status: 'Completed',
-    doctorName: 'Dr. John Smith'
+    doctorName: 'Dr. John Smith',
+    department: 'Emergency'
   }
 ];
 
@@ -292,33 +291,22 @@ export const INITIAL_PRESCRIPTIONS = [
     medicines: [
       { name: 'Metoprolol Tartrate', dosage: '50mg', frequency: 'Twice daily', duration: '14 days', notes: 'Monitor pulse rate' }
     ],
-    status: 'Dispensed'
+    status: 'Completed'
   }
-];
-
-export const INITIAL_INVENTORY = [
-  { id: 'INV-101', drugName: 'Amoxicillin 500mg', category: 'Antibiotics', stock: 450, minLevel: 100, unit: 'Tablets', status: 'Optimal' },
-  { id: 'INV-102', drugName: 'Ibuprofen 400mg', category: 'Analgesics', stock: 85, minLevel: 150, unit: 'Tablets', status: 'Low Stock' },
-  { id: 'INV-103', drugName: 'Metoprolol 50mg', category: 'Cardiovascular', stock: 240, minLevel: 80, unit: 'Tablets', status: 'Optimal' },
-  { id: 'INV-104', drugName: 'Insulin Glargine 100U', category: 'Endocrinology', stock: 12, minLevel: 30, unit: 'Vials', status: 'Low Stock' },
-  { id: 'INV-105', drugName: 'Albuterol Inhaler 90mcg', category: 'Respiratory', stock: 0, minLevel: 25, unit: 'Canisters', status: 'Out of Stock' },
-  { id: 'INV-106', drugName: 'Paracetamol 650mg', category: 'Analgesics', stock: 1200, minLevel: 200, unit: 'Tablets', status: 'Optimal' },
-  { id: 'INV-107', drugName: 'Omeprazole 20mg', category: 'Gastroenterology', stock: 68, minLevel: 100, unit: 'Capsules', status: 'Low Stock' }
 ];
 
 export const INITIAL_STAFF = [
   { id: 'ST-01', name: 'Dr. John Smith', role: 'Doctor', department: 'Cardiology', email: 'dr.smith@easpataal.com', phone: '+1 (555) 111-2222', status: 'Active', shifts: 'Morning (8 AM - 4 PM)' },
   { id: 'ST-02', name: 'Sarah Jenkins', role: 'Admin', department: 'Hospital Operations', email: 'admin.sarah@easpataal.com', phone: '+1 (555) 222-3333', status: 'Active', shifts: 'Full-time' },
   { id: 'ST-03', name: 'Michael Chang', role: 'Receptionist', department: 'Front Desk', email: 'frontdesk.m@easpataal.com', phone: '+1 (555) 333-4444', status: 'Active', shifts: 'Morning (7 AM - 3 PM)' },
-  { id: 'ST-04', name: 'Priya Sharma', role: 'Pharmacist', department: 'Pharmacy', email: 'pharmacy.priya@easpataal.com', phone: '+1 (555) 444-5555', status: 'Active', shifts: 'Day (9 AM - 5 PM)' },
   { id: 'ST-05', name: 'Dr. Amanda Chen', role: 'Doctor', department: 'Neurology', email: 'dr.chen@easpataal.com', phone: '+1 (555) 555-6666', status: 'On Leave', shifts: 'Evening (2 PM - 10 PM)' },
   { id: 'ST-06', name: 'David Miller', role: 'Receptionist', department: 'Emergency Admissions', email: 'd.miller@easpataal.com', phone: '+1 (555) 666-7777', status: 'Active', shifts: 'Night (11 PM - 7 AM)' }
 ];
 
 export const INITIAL_NOTIFICATIONS = [
-  { id: 'n1', title: 'Low Stock Warning', message: 'Albuterol Inhaler is OUT OF STOCK. Reorder immediately.', time: '10 mins ago', type: 'critical', unread: true },
-  { id: 'n2', title: 'Critical Vitals Alert', message: 'Eleanor Vance (P-1001) SpO2 dropped to 94% in ICU-B04.', time: '25 mins ago', type: 'warning', unread: true },
-  { id: 'n3', title: 'Pharmacy Update', message: 'Prescription RX-901 dispensed by Priya Sharma.', time: '1 hour ago', type: 'info', unread: false }
+  { id: 'n1', title: 'High Queue Load', message: 'Cardiology Queue wait time exceeds 25 minutes.', time: '10 mins ago', type: 'warning', unread: true },
+  { id: 'n2', title: 'Critical Vitals Alert', message: 'Eleanor Vance (P-1001) SpO2 dropped to 94% in ICU-B04.', time: '25 mins ago', type: 'critical', unread: true },
+  { id: 'n3', title: 'Queue Update', message: 'Token CARD-102 moved into Consultation with Dr. Smith.', time: '1 hour ago', type: 'info', unread: false }
 ];
 
 export const WEEKLY_PATIENT_DATA = [
@@ -332,9 +320,9 @@ export const WEEKLY_PATIENT_DATA = [
 ];
 
 export const DEPARTMENT_STATS = [
-  { name: 'Cardiology', count: 42, color: '#2563EB' },
-  { name: 'Neurology', count: 28, color: '#9333EA' },
-  { name: 'Orthopedics', count: 35, color: '#0D9488' },
+  { name: 'Cardiology', count: 42, color: '#00D4FF' },
+  { name: 'Neurology', count: 28, color: '#A855F7' },
+  { name: 'Orthopedics', count: 35, color: '#10B981' },
   { name: 'Pediatrics', count: 24, color: '#F59E0B' },
-  { name: 'Emergency', count: 50, color: '#DC2626' },
+  { name: 'Emergency', count: 50, color: '#EF4444' },
 ];

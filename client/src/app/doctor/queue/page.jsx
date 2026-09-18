@@ -51,7 +51,7 @@ export default function QueuePage() {
         <button
           onClick={handleCallNext}
           disabled={!nextWaitingItem}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
+          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
         >
           <Play className="w-4 h-4 fill-current" />
           <span>Call Next Patient ({nextWaitingItem ? nextWaitingItem.id : 'None'})</span>
@@ -60,17 +60,17 @@ export default function QueuePage() {
 
       {/* Active Consultation Spotlight Banner */}
       {activeItem && (
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-5 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center font-black text-xl border border-white/30 shrink-0">
               {activeItem.id}
             </div>
             <div>
-              <span className="text-[11px] uppercase font-bold tracking-widest text-blue-200 block">
+              <span className="text-[11px] uppercase font-bold tracking-widest text-primary-bg block">
                 Currently In Consultation Room
               </span>
               <h2 className="text-xl font-bold">{activeItem.patientName}</h2>
-              <p className="text-xs text-blue-100 mt-0.5">
+              <p className="text-xs text-primary-bg mt-0.5">
                 {activeItem.age} yrs, {activeItem.gender} • Reason: {activeItem.reason}
               </p>
             </div>
@@ -85,7 +85,7 @@ export default function QueuePage() {
             </Link>
             <button
               onClick={() => handleCompleteCurrent(activeItem.id)}
-              className="px-4 py-2 rounded-xl bg-white text-blue-700 text-xs font-bold hover:bg-blue-50 transition-colors shadow-sm"
+              className="px-4 py-2 rounded-xl bg-white text-primary text-xs font-bold hover:bg-primary-bg transition-colors shadow-sm"
             >
               Mark Completed
             </button>
@@ -104,7 +104,7 @@ export default function QueuePage() {
                 onClick={() => setActiveFilter(chip)}
                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-xs'
+                    ? 'bg-primary text-white shadow-xs'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
@@ -131,7 +131,7 @@ export default function QueuePage() {
               key={item.id}
               className={`p-5 rounded-xl bg-white dark:bg-[#1A1D23] border transition-all card-hover-lift flex flex-col justify-between ${
                 isInProgress
-                  ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-md'
+                  ? 'border-primary ring-2 ring-primary/20 shadow-md'
                   : 'border-gray-200 dark:border-[#2D3748] shadow-card'
               }`}
             >
@@ -143,10 +143,10 @@ export default function QueuePage() {
                   <span
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
                       isWaiting
-                        ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                        ? 'bg-neutral-bg text-neutral-text'
                         : isInProgress
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300'
-                        : 'bg-green-100 text-green-700 dark:bg-green-950/70 dark:text-green-300'
+                        ? 'bg-primary-bg text-primary-text'
+                        : 'bg-success-bg text-success-text'
                     }`}
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-current" />
@@ -169,7 +169,7 @@ export default function QueuePage() {
                 {isWaiting && (
                   <button
                     onClick={() => callNextQueue(item.id)}
-                    className="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 font-semibold transition-colors"
+                    className="px-3 py-1.5 rounded-lg bg-primary-bg hover:bg-primary hover:text-white text-primary font-semibold transition-colors"
                   >
                     Call Now
                   </button>
@@ -177,7 +177,7 @@ export default function QueuePage() {
                 {isInProgress && (
                   <button
                     onClick={() => handleCompleteCurrent(item.id)}
-                    className="px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/50 hover:bg-green-600 hover:text-white text-green-600 dark:text-green-400 font-semibold transition-colors"
+                    className="px-3 py-1.5 rounded-lg bg-success-bg hover:bg-success hover:text-white text-success-text font-semibold transition-colors"
                   >
                     Complete
                   </button>

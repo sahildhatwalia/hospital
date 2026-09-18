@@ -3,7 +3,6 @@ import {
   INITIAL_PATIENTS,
   INITIAL_QUEUE,
   INITIAL_PRESCRIPTIONS,
-  INITIAL_INVENTORY,
   INITIAL_STAFF,
   INITIAL_NOTIFICATIONS,
 } from '../lib/mockData';
@@ -12,7 +11,6 @@ export const useHospitalStore = create((set, get) => ({
   patients: INITIAL_PATIENTS,
   queue: INITIAL_QUEUE,
   prescriptions: INITIAL_PRESCRIPTIONS,
-  inventory: INITIAL_INVENTORY,
   staff: INITIAL_STAFF,
   notifications: INITIAL_NOTIFICATIONS,
   feedbacks: [],
@@ -130,7 +128,7 @@ export const useHospitalStore = create((set, get) => ({
         {
           id: `n_${Date.now()}`,
           title: 'New Prescription Created',
-          message: `Prescription ${newRx.id} for ${newRx.patientName} sent to Pharmacy.`,
+          message: `Prescription ${newRx.id} for ${newRx.patientName} generated.`,
           time: 'Just now',
           type: 'info',
           unread: true,
@@ -140,25 +138,6 @@ export const useHospitalStore = create((set, get) => ({
     }));
 
     return newRx;
-  },
-
-  dispensePrescription: (rxId) => {
-    set((state) => ({
-      prescriptions: state.prescriptions.map((rx) =>
-        rx.id === rxId ? { ...rx, status: 'Dispensed' } : rx
-      ),
-      notifications: [
-        {
-          id: `n_${Date.now()}`,
-          title: 'Prescription Dispensed',
-          message: `Prescription ${rxId} has been marked as Dispensed by Pharmacy.`,
-          time: 'Just now',
-          type: 'info',
-          unread: true,
-        },
-        ...state.notifications,
-      ],
-    }));
   },
 
   // Staff Actions
@@ -179,23 +158,6 @@ export const useHospitalStore = create((set, get) => ({
     }));
 
     return newStaff;
-  },
-
-  // Inventory Stock Adjustment
-  updateStock: (id, delta) => {
-    set((state) => ({
-      inventory: state.inventory.map((item) => {
-        if (item.id === id) {
-          const newStock = Math.max(0, item.stock + delta);
-          let newStatus = 'Optimal';
-          if (newStock === 0) newStatus = 'Out of Stock';
-          else if (newStock <= item.minLevel) newStatus = 'Low Stock';
-
-          return { ...item, stock: newStock, status: newStatus };
-        }
-        return item;
-      }),
-    }));
   },
 
   // Notifications
@@ -223,3 +185,4 @@ export const useHospitalStore = create((set, get) => ({
     }));
   },
 }));
+

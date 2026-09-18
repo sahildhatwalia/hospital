@@ -1,93 +1,69 @@
-const tokenService = require('../services/tokenService');
-const Token = require('../models/Token');
-const { GenerateTokenSchema } = require('../shared');
+const TokenService = require('../services/TokenService');
+const { sendSuccess } = require('../utils/responseFormatter');
 
-async function createToken(req, res, next) {
+const tokenService = new TokenService();
+
+async function generateToken(req, res, next) {
   try {
-    const validatedData = GenerateTokenSchema.parse(req.body);
-    const patientId = validatedData.patientId || req.user._id;
-
-    const token = await tokenService.generateToken({
-      patientId,
-      departmentId: validatedData.departmentId,
-      tokenType: validatedData.tokenType,
-      doctorId: validatedData.doctorId
-    }, () => req.app.get('io'));
-
-    res.status(201).json({ success: true, data: token });
-  } catch (error) {
-    if (error.name === 'ZodError') {
-      return res.status(400).json({ success: false, error: error.errors[0].message });
-    }
-    next(error);
+    const getIo = () => req.app.get('io');
+    const token = await tokenService.generateToken(req.body, getIo);
+    return sendSuccess(res, token, 'Token generated successfully', 201);
+  } catch (err) {
+    next(err);
   }
 }
 
-async function callNext(req, res, next) {
+async function callNextToken(req, res, next) {
   try {
+    const getIo = () => req.app.get('io');
     const { doctorId } = req.body;
-    const targetDoctorId = doctorId || req.user._id;
-
-    const token = await tokenService.callNextToken(targetDoctorId, () => req.app.get('io'));
+    const token = await tokenService.callNextToken(doctorId || req.user?._id, getIo);
     if (!token) {
-      return res.json({ success: true, message: 'No waiting patients in queue', data: null });
+      return sendSuccess(res, null, 'No tokens currently waiting in queue', 200);
     }
-
-    res.json({ success: true, data: token });
-  } catch (error) {
-    next(error);
+    return sendSuccess(res, token, 'Next token called into consultation', 200);
+  } catch (err) {
+    next(err);
   }
 }
 
 async function completeToken(req, res, next) {
   try {
-    const { tokenId } = req.params;
-    const token = await tokenService.completeToken(tokenId, () => req.app.get('io'));
-    res.json({ success: true, data: token });
-  } catch (error) {
-    next(error);
+    const getIo = () => req.app.get('io');
+    const { id } = req.params;
+    const token = await tokenService.completeToken(id, getIo);
+    return sendSuccess(res, token, 'Token marked as completed', 200);
+  } catch (err) {
+    next(err);
   }
 }
 
 async function skipToken(req, res, next) {
   try {
-    const { tokenId } = req.params;
-    const token = await tokenService.skipToken(tokenId, () => req.app.get('io'));
-    res.json({ success: true, data: token });
-  } catch (error) {
-    next(error);
+    const getIo = () => req.app.get('io');
+    const { id } = req.params;
+    const token = await tokenService.skipToken(id, getIo);
+    return sendSuccess(res, token, 'Token skipped', 200);
+  } catch (err) {
+    next(err);
   }
 }
 
-async function cancelToken(req, res, next) {
+async function emergencyBumpToken(req, res, next) {
   try {
-    const { tokenId } = req.params;
-    const token = await tokenService.cancelToken(tokenId, req.user._id, () => req.app.get('io'));
-    res.json({ success: true, data: token });
-  } catch (error) {
-    next(error);
-  }
-}
-
-async function getMyTokens(req, res, next) {
-  try {
-    const tokens = await Token.find({ patientId: req.user._id })
-      .sort({ createdAt: -1 })
-      .populate('departmentId', 'name code')
-      .populate('doctorId', 'roomNumber');
-
-    res.json({ success: true, data: tokens });
-  } catch (error) {
-    next(error);
+    const getIo = () => req.app.get('io');
+    const { id } = req.params;
+    const token = await tokenService.emergencyBumpToken(id, getIo);
+    return sendSuccess(res, token, 'Token bumped to Emergency priority', 200);
+  } catch (err) {
+    next(err);
   }
 }
 
 module.exports = {
-  createToken,
-  callNext,
+  generateToken,
+  callNextToken,
   completeToken,
   skipToken,
-  cancelToken,
-  getMyTokens
+  emergencyBumpToken,
 };
-

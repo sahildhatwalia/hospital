@@ -46,7 +46,7 @@ export default function CommandPalette({ isOpen, onClose }) {
     { title: 'New Prescription', path: '/doctor/prescriptions/new', icon: FileText, roles: ['DOCTOR'] },
     { title: 'Admin Overview', path: '/admin', icon: Settings, roles: ['ADMIN'] },
     { title: 'Receptionist Check-in', path: '/receptionist', icon: Users, roles: ['RECEPTIONIST', 'ADMIN'] },
-    { title: 'Pharmacy Inventory', path: '/pharmacist', icon: Pill, roles: ['PHARMACIST', 'ADMIN'] },
+    { title: 'Live Kiosk / TV Display Board', path: '/display', icon: Calendar, roles: ['ADMIN', 'RECEPTIONIST', 'DOCTOR'] },
   ].filter((item) => item.roles.includes(role));
 
   const handleSelectRoute = (path) => {

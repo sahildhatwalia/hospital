@@ -45,7 +45,7 @@ export default function LoginPage() {
           <div className="inline-flex p-3 rounded-2xl bg-sky-500/20 text-sky-400 mb-2">
             <LogIn className="h-6 w-6" />
           </div>
-          <h2 className="text-2xl font-bold text-white">Sign In to CareQueue</h2>
+          <h2 className="text-2xl font-bold text-white">Sign In to Nexline</h2>
           <p className="text-sm text-slate-400">Access your hospital queue dashboard</p>
         </div>
 

@@ -8,9 +8,7 @@ import {
   Users,
   Calendar,
   FileText,
-  Pill,
   BarChart3,
-  Settings,
   Bell,
   Sun,
   Moon,
@@ -20,6 +18,12 @@ import {
   LogOut,
   Home,
   MessageSquare,
+  PhoneCall,
+  Shield,
+  Stethoscope,
+  Tv,
+  ChevronDown,
+  Globe,
 } from 'lucide-react';
 
 import { useAuthStore } from '../store/useAuthStore';
@@ -35,6 +39,8 @@ export default function Navbar() {
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isCmdOpen, setIsCmdOpen] = useState(false);
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const [fontSize, setFontSize] = useState('normal'); // normal, lg, xl
 
   useEffect(() => {
     const handleCmdOpen = () => setIsCmdOpen(true);
@@ -42,60 +48,55 @@ export default function Navbar() {
     return () => window.removeEventListener('open-command-palette', handleCmdOpen);
   }, []);
 
-  // Determine Role Accent
+  const unreadNotifs = notifications.filter((n) => n.unread).length;
+
   const roleAccentColor =
     role === 'DOCTOR'
       ? '#2563EB'
       : role === 'ADMIN'
-      ? '#9333EA'
+      ? '#7C3AED'
       : role === 'RECEPTIONIST'
-      ? '#0D9488'
-      : role === 'PHARMACIST'
-      ? '#F59E0B'
-      : '#2563EB';
+      ? '#059669'
+      : '#0284C7';
 
-  const unreadNotifs = notifications.filter((n) => n.unread).length;
-
-  // Center nav links filtering based on role
+  // Navigation Links based on role
   const getNavLinks = () => {
     if (role === 'DOCTOR') {
       return [
-        { label: 'Dashboard', href: '/doctor', icon: Activity },
-        { label: 'Patients', href: '/doctor/patients', icon: Users },
-        { label: 'Queue', href: '/doctor/queue', icon: Calendar },
+        { label: 'Doctor Dashboard', href: '/doctor', icon: Activity },
+        { label: 'OPD Patients', href: '/doctor/patients', icon: Users },
+        { label: 'Live OPD Queue', href: '/doctor/queue', icon: Calendar },
         { label: 'Prescriptions', href: '/doctor/prescriptions/new', icon: FileText },
       ];
     }
     if (role === 'ADMIN') {
       return [
-        { label: 'Dashboard', href: '/admin', icon: Activity },
-        { label: 'Patients', href: '/doctor/patients', icon: Users },
+        { label: 'Admin Portal', href: '/admin', icon: Activity },
+        { label: 'Waiting Room TV Kiosk', href: '/display', icon: Tv },
         { label: 'Staff Management', href: '/admin#staff', icon: Users },
-        { label: 'Reports', href: '/admin#reports', icon: BarChart3 },
+        { label: 'OPD Analytics', href: '/admin#reports', icon: BarChart3 },
       ];
     }
     if (role === 'RECEPTIONIST') {
       return [
-        { label: 'Dashboard', href: '/receptionist', icon: Activity },
-        { label: 'Patients', href: '/doctor/patients', icon: Users },
-        { label: 'Appointments', href: '/receptionist#appointments', icon: Calendar },
-        { label: 'Check-in', href: '/receptionist#checkin', icon: CheckSquare },
-      ];
-    }
-    if (role === 'PHARMACIST') {
-      return [
-        { label: 'Dashboard', href: '/pharmacist', icon: Activity },
-        { label: 'Prescriptions', href: '/pharmacist#prescriptions', icon: FileText },
-        { label: 'Inventory', href: '/pharmacist#inventory', icon: Pill },
+        { label: 'Reception Desk', href: '/receptionist', icon: Activity },
+        { label: 'Queue Board', href: '/display', icon: Tv },
+        { label: 'Patient Registry', href: '/doctor/patients', icon: Users },
+        { label: 'Fast Check-In', href: '/receptionist#checkin', icon: CheckSquare },
       ];
     }
     if (role === 'PATIENT') {
       return [
-        { label: 'Home', href: '/patient', icon: Home },
-        { label: 'Feedback', href: '/patient/feedback', icon: MessageSquare },
+        { label: 'Patient Portal', href: '/patient', icon: Home },
+        { label: 'Live TV Board', href: '/display', icon: Tv },
+        { label: 'Patient Feedback', href: '/patient/feedback', icon: MessageSquare },
       ];
     }
-    return [{ label: 'Sign In', href: '/', icon: Activity }];
+    return [
+      { label: 'Home / Portal Sign-In', href: '/', icon: Home },
+      { label: 'OPD Ticket Check-in', href: '/patient', icon: CheckSquare },
+      { label: 'Live Waiting Area Display', href: '/display', icon: Tv },
+    ];
   };
 
   const navLinks = getNavLinks();
@@ -106,138 +107,224 @@ export default function Navbar() {
     return false;
   };
 
+  const roles = [
+    { key: 'DOCTOR', name: 'Doctor Portal', icon: Stethoscope },
+    { key: 'RECEPTIONIST', name: 'Reception Desk', icon: Users },
+    { key: 'ADMIN', name: 'Hospital Admin', icon: Shield },
+    { key: 'PATIENT', name: 'Patient Portal', icon: Home },
+  ];
+
   return (
     <>
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-40 h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-colors">
-        <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-          
-          {/* Left: Brand Logo Mark & Name */}
-          <div className="flex items-center gap-3">
-            <Link href={role === 'PATIENT' ? '/patient' : role === 'DOCTOR' ? '/doctor' : role === 'ADMIN' ? '/admin' : role === 'RECEPTIONIST' ? '/receptionist' : role === 'PHARMACIST' ? '/pharmacist' : '/'} className="flex items-center gap-2.5 group">
-              <div className="relative w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-teal-400 p-0.5 shadow-sm group-hover:scale-105 transition-transform flex items-center justify-center">
-                <div className="w-full h-full bg-white dark:bg-gray-900 rounded-full flex items-center justify-center">
-                  <HeartPulse className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-extrabold text-xl tracking-tight text-gray-900 dark:text-white leading-none">
-                  EASPATAAL
-                </span>
-                <span className="text-[9px] font-bold tracking-widest text-teal-600 dark:text-teal-400 uppercase mt-0.5">
-                  MEDICORE SYSTEM
-                </span>
-              </div>
-            </Link>
-          </div>
-
-          {/* Center: Nav Links */}
-          <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              const active = isLinkActive(link.href);
-              return (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    active
-                      ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-semibold'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${active ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`} />
-                  <span>{link.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Right Side: Command Palette, Theme, Notifications, User Profile */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Command Palette Button */}
-            <button
-              onClick={() => setIsCmdOpen(true)}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span>Search...</span>
-              <kbd className="px-1.5 py-0.5 text-[10px] bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded font-mono shadow-2xs">
-                ⌘K
-              </kbd>
-            </button>
-
-            {/* Dark Mode Toggle */}
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              title="Toggle Dark Mode"
-            >
-              {darkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5" />}
-            </button>
-
-            {/* Notification Bell */}
-            <div className="relative">
-              <button
-                onClick={() => setIsNotifOpen(!isNotifOpen)}
-                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
-                title="Notifications"
-              >
-                <Bell className="w-5 h-5" />
-                {unreadNotifs > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900 animate-pulse" />
-                )}
-              </button>
-              <NotificationsDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+      <header className="sticky top-0 z-40 w-full shadow-md transition-colors">
+        
+        {/* Top Utility Bar (AIIMS Helpline & Accessibility Bar) */}
+        <div className="bg-[#0A1A3A] dark:bg-[#070D1B] text-white text-xs py-1.5 px-4 sm:px-8 border-b border-blue-900/40">
+          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            
+            {/* Left: Emergency Helpline */}
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1.5 text-red-300 font-semibold animate-pulse">
+                <PhoneCall className="w-3.5 h-3.5 text-red-400" />
+                <span>24x7 Emergency Helpline: 011-26588500 / 1800-11-2443</span>
+              </span>
+              <span className="hidden md:inline text-blue-300/60">|</span>
+              <span className="hidden md:inline text-blue-200">
+                AIIMS Medical Center • OPD Patient Queue System
+              </span>
             </div>
 
-            <div className="h-6 w-[1px] bg-gray-200 dark:bg-gray-800 mx-1 hidden sm:block" />
-
-            {/* User Profile Block */}
-            {user ? (
-              <div className="flex items-center gap-3">
-                <div className="hidden sm:flex flex-col text-right">
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
-                    {user.name}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                    {user.role}
-                  </span>
-                </div>
-
-                {/* Avatar with Role-accent Ring */}
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm ring-2 ring-offset-2 dark:ring-offset-gray-900"
-                  style={{ backgroundColor: roleAccentColor, ringColor: roleAccentColor }}
-                >
-                  {user.avatar || 'US'}
-                </div>
-
+            {/* Right: Theme Toggle & Quick Accessibility Controls */}
+            <div className="flex items-center gap-3">
+              {/* Quick Role Switcher Dropdown */}
+              <div className="relative">
                 <button
-                  onClick={() => {
-                    logout();
-                    router.push('/');
-                  }}
-                  className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
-                  title="Sign Out"
+                  onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+                  className="flex items-center gap-1 px-2.5 py-0.5 rounded bg-blue-900/60 hover:bg-blue-800 text-blue-100 border border-blue-700/50 text-[11px] font-medium transition-colors"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <Globe className="w-3 h-3 text-blue-300" />
+                  <span>Role: {role}</span>
+                  <ChevronDown className="w-3 h-3 ml-0.5" />
                 </button>
+
+                {isRoleDropdownOpen && (
+                  <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-200 dark:border-slate-700 py-1 text-gray-800 dark:text-gray-200 z-50 animate-in fade-in duration-150">
+                    <div className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase border-b border-gray-100 dark:border-slate-700">
+                      Switch Role Portal
+                    </div>
+                    {roles.map((r) => {
+                      const Icon = r.icon;
+                      return (
+                        <button
+                          key={r.key}
+                          onClick={() => {
+                            switchRole(r.key);
+                            setIsRoleDropdownOpen(false);
+                            if (r.key === 'DOCTOR') router.push('/doctor');
+                            else if (r.key === 'ADMIN') router.push('/admin');
+                            else if (r.key === 'RECEPTIONIST') router.push('/receptionist');
+                            else router.push('/patient');
+                          }}
+                          className={`w-full px-3 py-1.5 text-left text-xs flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-slate-700/80 transition-colors ${
+                            role === r.key ? 'font-bold text-blue-600 dark:text-blue-400 bg-blue-50/60 dark:bg-slate-700/50' : ''
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                          <span>{r.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            ) : (
-              <Link
-                href="/"
-                className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-colors"
+
+              {/* Theme Toggle (Light / Dark) */}
+              <button
+                onClick={toggleDarkMode}
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-blue-900/60 hover:bg-blue-800 text-blue-100 text-[11px] font-semibold border border-blue-700/50 transition-colors"
+                title="Toggle Light / Dark Mode"
               >
-                Sign In
-              </Link>
-            )}
+                {darkMode ? (
+                  <>
+                    <Sun className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Light Theme</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3.5 h-3.5 text-blue-200" />
+                    <span>Dark Theme</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* AIIMS Header Section with Logo Crest */}
+        <div className="bg-white dark:bg-[#0F172A] border-b border-gray-200 dark:border-slate-800 transition-colors">
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3 flex items-center justify-between gap-4">
+            
+            {/* AIIMS Hospital Crest & Branding */}
+            <Link href="/" className="flex items-center gap-3.5 group">
+              <div className="w-12 h-12 rounded-xl bg-[#0F2C59] dark:bg-blue-600 text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                <HeartPulse className="w-7 h-7 text-red-400 animate-pulse" />
+              </div>
+              <div className="flex flex-col">
+                <div className="text-[11px] font-bold text-red-600 dark:text-red-400 tracking-wider">
+                  अखिल भारतीय आयुर्विज्ञान संस्थान, नई दिल्ली
+                </div>
+                <h1 className="text-lg sm:text-xl font-black text-[#0F2C59] dark:text-white tracking-tight leading-tight">
+                  ALL INDIA INSTITUTE OF MEDICAL SCIENCES
+                </h1>
+                <div className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 tracking-wide">
+                  AIIMS OPD & Queue Management System
+                </div>
+              </div>
+            </Link>
+
+            {/* Quick Search & User Profile */}
+            <div className="flex items-center gap-3">
+              {/* Command Search */}
+              <button
+                onClick={() => setIsCmdOpen(true)}
+                className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 text-xs font-medium hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors border border-gray-200 dark:border-slate-700"
+              >
+                <Search className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                <span>Search OPD & Tokens...</span>
+                <kbd className="px-1.5 py-0.5 text-[10px] bg-white dark:bg-slate-900 text-gray-500 border border-gray-300 dark:border-slate-700 rounded font-mono shadow-2xs">
+                  ⌘K
+                </kbd>
+              </button>
+
+              {/* Notification Bell */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsNotifOpen(!isNotifOpen)}
+                  className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors relative"
+                  title="Notifications"
+                >
+                  <Bell className="w-5 h-5 text-blue-800 dark:text-blue-300" />
+                  {unreadNotifs > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-red-600 ring-2 ring-white dark:ring-slate-900 animate-pulse" />
+                  )}
+                </button>
+                <NotificationsDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+              </div>
+
+              {/* Logged User Info */}
+              {user ? (
+                <div className="flex items-center gap-2.5 pl-2 border-l border-gray-200 dark:border-slate-800">
+                  <div className="hidden sm:flex flex-col text-right">
+                    <span className="text-xs font-bold text-gray-900 dark:text-white leading-tight">
+                      {user.name}
+                    </span>
+                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                      {user.role} Portal
+                    </span>
+                  </div>
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm"
+                    style={{ backgroundColor: roleAccentColor }}
+                  >
+                    {user.avatar || 'AI'}
+                  </div>
+                  <button
+                    onClick={() => {
+                      logout();
+                      router.push('/');
+                    }}
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                    title="Sign Out"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/"
+                  className="px-3.5 py-1.5 rounded-lg bg-[#0F2C59] hover:bg-blue-800 text-white text-xs font-bold shadow-sm transition-colors"
+                >
+                  Portal Sign-In
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Menu Bar */}
+        <div className="bg-[#0F2C59] dark:bg-[#1E293B] text-white transition-colors">
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between overflow-x-auto">
+            <nav className="flex items-center space-x-1 py-1">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                const active = isLinkActive(link.href);
+                return (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold whitespace-nowrap rounded-md transition-colors ${
+                      active
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'text-blue-100 hover:bg-blue-800/60 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 text-blue-200" />
+                    <span>{link.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="hidden md:flex items-center gap-2 text-[11px] font-medium text-blue-200 pr-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Real-Time Socket Connected</span>
+            </div>
+          </div>
+        </div>
+
       </header>
 
-      {/* Mobile Navigation Bottom Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-2 py-2 flex items-center justify-around">
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 px-2 py-2 flex items-center justify-around shadow-lg">
         {navLinks.map((link) => {
           const Icon = link.icon;
           const active = isLinkActive(link.href);
@@ -258,7 +345,6 @@ export default function Navbar() {
         })}
       </div>
 
-      {/* Command Palette Modal */}
       <CommandPalette isOpen={isCmdOpen} onClose={() => setIsCmdOpen(false)} />
     </>
   );

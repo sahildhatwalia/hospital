@@ -310,7 +310,7 @@ export default function NewPrescriptionPage() {
                     <HeartPulse className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-extrabold tracking-tight text-blue-900">EASPATAAL MEDICORE</h2>
+                    <h2 className="text-xl font-extrabold tracking-tight text-blue-900">NEXLINE HEALTHCARE</h2>
                     <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-widest">
                       Tertiary Care & Research Center
                     </p>
@@ -383,7 +383,7 @@ export default function NewPrescriptionPage() {
 
               {/* Signature Block */}
               <div className="pt-8 flex items-center justify-between border-t border-gray-200 text-xs">
-                <span className="text-gray-400">Generated via EASPATAAL EMR Portal</span>
+                <span className="text-gray-400">Generated via Nexline EMR Portal</span>
                 <div className="text-center">
                   <div className="font-serif italic text-base text-blue-900 mb-1">{createdRx.doctorName}</div>
                   <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block border-t border-gray-300 pt-0.5">

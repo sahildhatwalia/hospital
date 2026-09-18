@@ -1,16 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const tokenController = require('../controllers/tokenController');
+const validate = require('../middleware/validate');
+const { generateTokenSchema } = require('../validators/tokenSchemas');
 const { authenticateToken } = require('../middleware/auth');
-const { authorizeRoles } = require('../middleware/roles');
-const { UserRole } = require('../shared');
+const roles = require('../middleware/roles');
 
-router.post('/generate', authenticateToken, tokenController.createToken);
-router.post('/call-next', authenticateToken, authorizeRoles(UserRole.DOCTOR, UserRole.RECEPTIONIST, UserRole.ADMIN), tokenController.callNext);
-router.patch('/:tokenId/complete', authenticateToken, authorizeRoles(UserRole.DOCTOR, UserRole.RECEPTIONIST, UserRole.ADMIN), tokenController.completeToken);
-router.patch('/:tokenId/skip', authenticateToken, authorizeRoles(UserRole.DOCTOR, UserRole.RECEPTIONIST, UserRole.ADMIN), tokenController.skipToken);
-router.patch('/:tokenId/cancel', authenticateToken, tokenController.cancelToken);
-router.get('/my-tokens', authenticateToken, tokenController.getMyTokens);
+router.post('/generate', validate(generateTokenSchema), tokenController.generateToken);
+router.post('/call-next', authenticateToken, roles(['DOCTOR', 'ADMIN']), tokenController.callNextToken);
+router.patch('/:id/complete', authenticateToken, roles(['DOCTOR', 'ADMIN']), tokenController.completeToken);
+router.patch('/:id/skip', authenticateToken, roles(['DOCTOR', 'ADMIN']), tokenController.skipToken);
+router.post('/:id/emergency-bump', authenticateToken, roles(['RECEPTIONIST', 'ADMIN']), tokenController.emergencyBumpToken);
 
 module.exports = router;
-
